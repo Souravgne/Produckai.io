@@ -10,7 +10,7 @@ export default {
           200: '#99f6e4',
           300: '#5eead4',
           400: '#2dd4bf',
-          500: '#00A4B8', // ProduckAI teal
+          500: '#00A0C1', // ProduckAI teal - updated to match logo
           600: '#0891b2',
           700: '#0e7490',
           800: '#155e75',
@@ -23,7 +23,7 @@ export default {
           300: '#d8b4fe',
           400: '#c084fc',
           500: '#a855f7',
-          600: '#7E57C2', // ProduckAI purple
+          600: '#7650A1', // ProduckAI purple - updated to match logo
           700: '#7e22ce',
           800: '#6b21a8',
           900: '#581c87',

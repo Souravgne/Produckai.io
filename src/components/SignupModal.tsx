@@ -141,7 +141,7 @@ export default function SignupModal({ onClose }: SignupModalProps) {
         </button>
         
         <div className="text-center mb-6">
-          <Logo size="md" className="mx-auto mb-4" />
+          <Logo size="lg" className="mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-gray-900">Get Started with ProduckAI</h2>
           <p className="text-gray-600 mt-2">
             Join Product led companies to transform scattered customer feedback and build what matters!

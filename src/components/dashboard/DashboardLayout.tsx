@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Users, MessageSquare, Settings, LogOut, Menu, X, BarChart2, Layers, TrendingUp, FolderKanban, Database, Upload, Plug } from 'lucide-react';
+import { LayoutDashboard, Users, MessageSquare, Settings, LogOut, Menu, X, BarChart2, Layers, TrendingUp, FolderKanban, Database, Upload, Plug, GitPullRequest } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import Logo from '../Logo';
 
@@ -34,6 +34,12 @@ const navigation = [
     href: '/dashboard/pods', 
     icon: Users,
     description: 'Collaborate with your team in shared spaces'
+  },
+  { 
+    name: 'Roadmap', 
+    href: '/dashboard/roadmap', 
+    icon: GitPullRequest,
+    description: 'View and manage product roadmap'
   }
 ];
 
@@ -140,9 +146,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <div className="flex items-center h-14 px-4 border-b border-gray-200">
           <button
             onClick={() => handleNavigation('/dashboard')}
-            className="flex items-center space-x-2"
+            className="flex items-center space-x-1"
           >
-            <Logo size="sm" />
+            <Logo size="sm" className="w-10 h-10" />
             <span className="text-lg font-bold text-gray-900">ProduckAI</span>
           </button>
           <button
@@ -164,19 +170,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     onClick={() => handleNavigation(item.href)}
                     className={`group flex w-full items-center px-3 py-2 rounded-lg text-sm transition-colors ${
                       active
-                        ? 'bg-[#00A4B8]/5 text-[#00A4B8]'
+                        ? 'bg-[#00A0C1]/5 text-[#00A0C1]'
                         : 'text-gray-700 hover:bg-gray-100'
                     }`}
                   >
                     <item.icon
                       className={`w-5 h-5 mr-3 ${
-                        active ? 'text-[#00A4B8]' : 'text-gray-400 group-hover:text-gray-500'
+                        active ? 'text-[#00A0C1]' : 'text-gray-400 group-hover:text-gray-500'
                       }`}
                     />
                     <div className="text-left">
                       <span className="font-medium">{item.name}</span>
                       {active && (
-                        <p className="text-xs text-[#00A4B8] mt-0.5">{item.description}</p>
+                        <p className="text-xs text-[#00A0C1] mt-0.5">{item.description}</p>
                       )}
                     </div>
                   </button>
@@ -197,19 +203,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       onClick={() => handleNavigation(item.href)}
                       className={`group flex w-full items-center px-3 py-2 rounded-lg text-sm transition-colors ${
                         active
-                          ? 'bg-[#00A4B8]/5 text-[#00A4B8]'
+                          ? 'bg-[#00A0C1]/5 text-[#00A0C1]'
                           : 'text-gray-700 hover:bg-gray-100'
                       }`}
                     >
                       <item.icon
                         className={`w-5 h-5 mr-3 ${
-                          active ? 'text-[#00A4B8]' : 'text-gray-400 group-hover:text-gray-500'
+                          active ? 'text-[#00A0C1]' : 'text-gray-400 group-hover:text-gray-500'
                         }`}
                       />
                       <div className="text-left">
                         <span className="font-medium">{item.name}</span>
                         {active && (
-                          <p className="text-xs text-[#00A4B8] mt-0.5">{item.description}</p>
+                          <p className="text-xs text-[#00A0C1] mt-0.5">{item.description}</p>
                         )}
                       </div>
                     </button>
@@ -231,19 +237,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       onClick={() => handleNavigation(item.href)}
                       className={`group flex w-full items-center px-3 py-2 rounded-lg text-sm transition-colors ${
                         active
-                          ? 'bg-[#00A4B8]/5 text-[#00A4B8]'
+                          ? 'bg-[#00A0C1]/5 text-[#00A0C1]'
                           : 'text-gray-700 hover:bg-gray-100'
                       }`}
                     >
                       <item.icon
                         className={`w-5 h-5 mr-3 ${
-                          active ? 'text-[#00A4B8]' : 'text-gray-400 group-hover:text-gray-500'
+                          active ? 'text-[#00A0C1]' : 'text-gray-400 group-hover:text-gray-500'
                         }`}
                       />
                       <div className="text-left">
                         <span className="font-medium">{item.name}</span>
                         {active && (
-                          <p className="text-xs text-[#00A4B8] mt-0.5">{item.description}</p>
+                          <p className="text-xs text-[#00A0C1] mt-0.5">{item.description}</p>
                         )}
                       </div>
                     </button>

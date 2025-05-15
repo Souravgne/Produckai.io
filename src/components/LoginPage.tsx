@@ -160,18 +160,16 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
-        <div className="flex items-center justify-center mb-6">
-          <Logo size="lg" className="w-20 h-20" />
+        <div className="flex items-center justify-center mb-12">
+          <Logo size="lg" className="w-32 h-32" />
         </div>
-        <h2 className="text-center text-4xl font-extrabold text-gray-900 mb-2">
-          ProduckAI
-        </h2>
-        <p className="mt-2 text-center text-lg text-gray-600">
+        
+        <p className="text-center text-xl text-gray-600 mb-12">
           Turn scattered customer feedback into actionable product strategy
         </p>
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           {error && (
             <div className="mb-6 bg-red-50 border border-red-200 rounded-md p-4 flex items-center text-red-700">
@@ -190,7 +188,7 @@ export default function LoginPage() {
                   setShowResetPassword(false);
                   setResetSent(false);
                 }}
-                className="text-[#00A4B8] hover:text-[#008a9a] font-medium"
+                className="text-[#00A0C1] hover:text-[#008a9a] font-medium"
               >
                 Return to login
               </button>
@@ -209,7 +207,7 @@ export default function LoginPage() {
                     id="email"
                     type="email"
                     required
-                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-[#00A4B8] focus:border-[#00A4B8] sm:text-sm"
+                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-[#00A0C1] focus:border-[#00A0C1] sm:text-sm"
                     placeholder="you@company.com"
                     value={email}
                     onChange={(e) => {
@@ -233,7 +231,7 @@ export default function LoginPage() {
                       id="password"
                       type={showPassword ? "text" : "password"}
                       required
-                      className="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-[#00A4B8] focus:border-[#00A4B8] sm:text-sm"
+                      className="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-[#00A0C1] focus:border-[#00A0C1] sm:text-sm"
                       value={password}
                       onChange={(e) => {
                         setPassword(e.target.value);
@@ -259,7 +257,7 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full flex justify-center items-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#00A4B8] hover:bg-[#008a9a] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#00A4B8] disabled:opacity-50 gap-2"
+                  className="w-full flex justify-center items-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#00A0C1] hover:bg-[#008a9a] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#00A0C1] disabled:opacity-50 gap-2"
                 >
                   {loading && <Loader2 className="w-4 h-4 animate-spin" />}
                   {showResetPassword ? 'Send Reset Instructions' : 'Sign in'}
@@ -280,7 +278,7 @@ export default function LoginPage() {
                   type="button"
                   onClick={handleGoogleLogin}
                   disabled={googleLoading}
-                  className="w-full flex justify-center items-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#00A4B8] disabled:opacity-50 gap-2"
+                  className="w-full flex justify-center items-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#00A0C1] disabled:opacity-50 gap-2"
                 >
                   {googleLoading ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -306,7 +304,7 @@ export default function LoginPage() {
                     setShowResetPassword(!showResetPassword);
                     setError('');
                   }}
-                  className="text-[#00A4B8] hover:text-[#008a9a] font-medium"
+                  className="text-[#00A0C1] hover:text-[#008a9a] font-medium"
                 >
                   {showResetPassword ? 'Back to login' : 'Forgot your password?'}
                 </button>

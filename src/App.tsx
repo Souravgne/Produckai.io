@@ -33,6 +33,7 @@ import ProductDetailsStep from './components/onboarding/ProductDetailsStep';
 import ProductThemesStep from './components/onboarding/ProductThemesStep';
 import DataSourcesStep from './components/onboarding/DataSourcesStep';
 import SignupModal from './components/SignupModal';
+import RoadmapPage from './components/RoadmapPage';
 import { supabase } from './lib/supabase';
 import Logo from './components/Logo';
 
@@ -76,27 +77,27 @@ function LandingPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Navigation */}
-      <nav className="px-6 py-4 bg-white shadow-sm">
+      {/* Navigation - Smaller top bar with prominent logo */}
+      <nav className="px-4 py-2 bg-white shadow-sm">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="flex items-center space-x-2">
-            <Logo size="md" className="w-50 h-50" />
-            <span className="text-2xl font-bold"><span style={{ color: "#00A4B8" }}>Produck</span><span className="text-purple-600">AI</span></span>
+          <div className="flex items-center">
+            <Logo size="lg" className="w-40 h-40 -mt-4 -mb-4" /> {/* Larger logo with negative margins */}
           </div>
           <div className="hidden md:flex items-center space-x-8">
-            <a href="#features" className="text-gray-600 hover:text-[#00A4B8] transition-colors">Features</a>
-            <a href="#metrics" className="text-gray-600 hover:text-[#00A4B8] transition-colors">Metrics</a>
+            <a href="#features" className="text-gray-600 hover:text-[#00A0C1] transition-colors">Features</a>
+            <a href="#metrics" className="text-gray-600 hover:text-[#00A0C1] transition-colors">Metrics</a>
+            <Link to="/roadmap" className="text-gray-600 hover:text-[#00A0C1] transition-colors">Roadmap</Link>
           </div>
           <div className="flex items-center gap-3">
             <button
               onClick={() => setShowSignupModal(true)}
-              className="px-4 py-2 bg-[#00A4B8] text-white rounded-lg hover:bg-[#008a9a] transition-colors"
+              className="px-4 py-2 bg-[#00A0C1] text-white rounded-lg hover:bg-[#008a9a] transition-colors"
             >
               Sign Up
             </button>
             <button
               onClick={() => navigate('/login')}
-              className="px-4 py-2 bg-[#00A4B8] text-white rounded-lg hover:bg-[#008a9a] transition-colors"
+              className="px-4 py-2 bg-[#00A0C1] text-white rounded-lg hover:bg-[#008a9a] transition-colors"
             >
               Login
             </button>
@@ -131,7 +132,7 @@ function LandingPage() {
               <div className="flex flex-col sm:flex-row items-center gap-4 max-w-md mx-auto md:mx-0">
                 <button 
                   onClick={() => setShowSignupModal(true)}
-                  className="w-full sm:w-auto whitespace-nowrap px-6 py-3 bg-[#00A4B8] text-white rounded-lg font-medium hover:bg-[#008a9a] transition-colors flex items-center justify-center gap-2"
+                  className="w-full sm:w-auto whitespace-nowrap px-6 py-3 bg-[#00A0C1] text-white rounded-lg font-medium hover:bg-[#008a9a] transition-colors flex items-center justify-center gap-2"
                 >
                   Request Demo
                   <ArrowRight className="w-5 h-5" />
@@ -162,7 +163,7 @@ function LandingPage() {
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all">
-              <div className="w-12 h-12 bg-[#00A4B8]/10 rounded-lg flex items-center justify-center text-[#00A4B8] mb-6 mx-auto">
+              <div className="w-12 h-12 bg-[#00A0C1]/10 rounded-lg flex items-center justify-center text-[#00A0C1] mb-6 mx-auto">
                 <MessageSquare className="w-6 h-6" />
               </div>
               <h3 className="text-xl font-semibold mb-3">Unified Feedback</h3>
@@ -182,7 +183,7 @@ function LandingPage() {
             </div>
             
             <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all">
-              <div className="w-12 h-12 bg-[#00A4B8]/10 rounded-lg flex items-center justify-center text-[#00A4B8] mb-6 mx-auto">
+              <div className="w-12 h-12 bg-[#00A0C1]/10 rounded-lg flex items-center justify-center text-[#00A0C1] mb-6 mx-auto">
                 <Users className="w-6 h-6" />
               </div>
               <h3 className="text-xl font-semibold mb-3">Collaborative Decisions</h3>
@@ -203,7 +204,7 @@ function LandingPage() {
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
             <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 text-center">
-              <div className="w-16 h-16 bg-[#00A4B8]/10 rounded-full flex items-center justify-center text-[#00A4B8] mb-6 mx-auto">
+              <div className="w-16 h-16 bg-[#00A0C1]/10 rounded-full flex items-center justify-center text-[#00A0C1] mb-6 mx-auto">
                 <BarChart2 className="w-8 h-8" />
               </div>
               <h3 className="text-3xl font-bold text-gray-900 mb-2">Reduction</h3>
@@ -219,7 +220,7 @@ function LandingPage() {
             </div>
             
             <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 text-center">
-              <div className="w-16 h-16 bg-[#00A4B8]/10 rounded-full flex items-center justify-center text-[#00A4B8] mb-6 mx-auto">
+              <div className="w-16 h-16 bg-[#00A0C1]/10 rounded-full flex items-center justify-center text-[#00A0C1] mb-6 mx-auto">
                 <Users className="w-8 h-8" />
               </div>
               <h3 className="text-3xl font-bold text-gray-900 mb-2">Increase</h3>
@@ -233,7 +234,7 @@ function LandingPage() {
       <div id="features" className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-6">
           <h2 className="text-4xl font-bold text-center text-gray-900 mb-4">
-            How <span style={{ color: "#00A4B8" }}>Produck</span><span className="text-purple-600">AI</span> works
+            How <span style={{ color: "#00A0C1" }}>Produck</span><span className="text-purple-600">AI</span> works
           </h2>
           <p className="text-xl text-gray-600 text-center mb-12 max-w-3xl mx-auto">
             See how our platform transforms customer feedback into product decisions
@@ -247,7 +248,7 @@ function LandingPage() {
                   onClick={() => setActiveTab(key)}
                   className={`px-6 py-4 text-sm font-medium ${
                     activeTab === key
-                      ? 'text-[#00A4B8] border-b-2 border-[#00A4B8] -mb-px'
+                      ? 'text-[#00A0C1] border-b-2 border-[#00A0C1] -mb-px'
                       : 'text-gray-500 hover:text-gray-700'
                   }`}
                 >
@@ -269,8 +270,8 @@ function LandingPage() {
                   <ul className="space-y-4">
                     {features[activeTab as keyof typeof features].bulletPoints.map((point, index) => (
                       <li key={index} className="flex items-center gap-3">
-                        <div className="w-6 h-6 rounded-full bg-[#00A4B8]/10 flex items-center justify-center flex-shrink-0">
-                          <svg className="w-4 h-4 text-[#00A4B8]" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <div className="w-6 h-6 rounded-full bg-[#00A0C1]/10 flex items-center justify-center flex-shrink-0">
+                          <svg className="w-4 h-4 text-[#00A0C1]" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M5 12L10 17L19 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                           </svg>
                         </div>
@@ -305,7 +306,7 @@ function LandingPage() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <button 
               onClick={() => setShowSignupModal(true)}
-              className="px-8 py-3 bg-[#00A4B8] text-white rounded-lg font-semibold hover:bg-[#008a9a] transition-colors"
+              className="px-8 py-3 bg-[#00A0C1] text-white rounded-lg font-semibold hover:bg-[#008a9a] transition-colors"
             >
               Request Demo
             </button>
@@ -318,12 +319,11 @@ function LandingPage() {
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div>
-              <div className="flex items-center space-x-2 mb-4">
-                <Logo size="sm" className="text-white" />
-                <span className="text-xl font-bold">ProduckAI</span>
+              <div className="flex items-center mb-4">
+                <Logo size="lg" className="w-40 h-40 -mt-4 -mb-4" /> {/* Larger logo with negative margins */}            
               </div>
               <p className="text-gray-400 mb-4">
-                AI-native assistant for product managers.
+            
               </p>
               <div className="flex space-x-4">
                 <a href="#" className="text-gray-400 hover:text-white">
@@ -352,9 +352,9 @@ function LandingPage() {
             <div>
               <h3 className="text-lg font-semibold mb-4">PRODUCT</h3>
               <ul className="space-y-2">
-                <li><a href="#" className="text-gray-400 hover:text-white">Features</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white">Integrations</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white">Roadmap</a></li>
+                <li><a href="#features" className="text-gray-400 hover:text-white">Features</a></li>
+                <li><a href="#metrics" className="text-gray-400 hover:text-white">Integrations</a></li>
+                <li><Link to="/roadmap" className="text-gray-400 hover:text-white">Roadmap</Link></li>
               </ul>
             </div>
           </div>
@@ -381,7 +381,7 @@ function AppRoutes() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#00A4B8]"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#00A0C1]"></div>
       </div>
     );
   }
@@ -396,6 +396,7 @@ function AppRoutes() {
         }
       />
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/roadmap" element={<RoadmapPage />} />
 
       {/* Protected routes - require authentication */}
       <Route
@@ -450,6 +451,7 @@ function AppRoutes() {
                   element={<IntegrationsPage />}
                 />
                 <Route path="settings" element={<SettingsPage />} />
+                <Route path="roadmap" element={<RoadmapPage />} />
               </Routes>
             </DashboardLayout>
           )
