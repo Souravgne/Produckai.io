@@ -116,6 +116,30 @@ export default function SignupModal({ onClose }: SignupModalProps) {
         email: '',
         company: ''
       });
+
+      try {
+        const { data: fnData, error: fnError } = await supabase.functions.invoke('send-mailgun-email', {
+          body: {
+            full_name: formData.fullName.trim(),
+            email: formData.email.trim(),
+            company: formData.company.trim()
+          }
+        });
+
+        console.log("Sending email with:", {
+          full_name: formData.fullName,
+          email: formData.email,
+          company: formData.company
+        });
+      
+        if (fnError) {
+          console.error('Failed to call send-mailgun-email:', fnError);
+        } else {
+          console.log('Email function called successfully:', fnData);
+        }
+      } catch (err) {
+        console.error('Unexpected error during email function call:', err);
+      }
       
       // Close modal after delay
       setTimeout(() => {
@@ -141,7 +165,7 @@ export default function SignupModal({ onClose }: SignupModalProps) {
         </button>
         
         <div className="text-center mb-6">
-          <Logo size="lg" className="mx-auto mb-4" />
+          <Logo size="md" className="mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-gray-900">Get Started with ProduckAI</h2>
           <p className="text-gray-600 mt-2">
             Join Product led companies to transform scattered customer feedback and build what matters!
@@ -152,9 +176,9 @@ export default function SignupModal({ onClose }: SignupModalProps) {
           <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-start gap-3 mb-6">
             <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
             <div>
-              <h3 className="font-medium text-green-800">Account created successfully!</h3>
+              <h3 className="font-medium text-green-800"> Thanks for signing up!</h3>
               <p className="text-green-700 text-sm mt-1">
-                Please check your email to verify your account and set your password.
+              A member of the ProduckAI team will be in touch shortly with your account details.
               </p>
             </div>
           </div>
