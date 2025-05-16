@@ -20,7 +20,6 @@ import {
   ExternalLink,
   Send,
   Trash2,
-  Bookmark,
 } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 import { toast } from 'sonner';
@@ -80,16 +79,26 @@ interface PodInsight {
   }>;
 }
 
-interface Comment {
+interface PodInvitation {
+  id: string;
+  email: string;
+  role: 'member' | 'viewer';
+  status: 'pending' | 'accepted' | 'declined';
+  created_at: string;
+}
+
+interface Theme {
+  id: string;
+  name: string;
+  description: string;
+  priority_score: number;
+}
+
+interface Insight {
   id: string;
   content: string;
-  created_at: string;
-  user_id: string;
-  user_profiles_view?: {
-    full_name: string | null;
-    role: string;
-    department: string;
-  };
+  source: string;
+  sentiment: string;
 }
 
 export default function WorkspaceDetail({ podId }: WorkspaceDetailProps) {
@@ -484,6 +493,20 @@ export default function WorkspaceDetail({ podId }: WorkspaceDetailProps) {
     }
   };
 
+  const filteredInsights = insights.filter(insight => {
+    if (!searchQuery) return true;
+    
+    const content = insight.insights?.content || '';
+    const note = insight.note || '';
+    const tags = insight.tags || [];
+    
+    return (
+      content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      note.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+    );
+  });
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -527,20 +550,6 @@ export default function WorkspaceDetail({ podId }: WorkspaceDetailProps) {
       </div>
     );
   }
-
-  const filteredInsights = insights.filter(insight => {
-    if (!searchQuery) return true;
-    
-    const content = insight.insights?.content || '';
-    const note = insight.note || '';
-    const tags = insight.tags || [];
-    
-    return (
-      content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      note.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
-    );
-  });
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -689,8 +698,8 @@ export default function WorkspaceDetail({ podId }: WorkspaceDetailProps) {
                               insight.insights.sentiment === 'negative' ? 'bg-red-50 text-red-700' :
                               'bg-blue-50 text-blue-700'
                             }`}>
-                              {insight.insights.sentiment}
-                            </span>
+                               {insight.insights.sentiment}
+                             </span>
                           )}
                           
                           {/* Example ACV value */}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, DollarSign, ExternalLink, Tag, Flag, Share2, ImportIcon as ExportIcon } from 'lucide-react';
+import { Users, DollarSign, ExternalLink, Tag, Flag, Share2 } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 
 interface Customer {
@@ -39,6 +39,7 @@ interface InsightCardProps {
   onMarkImportant?: (insightId: string) => void;
   onShareWithPod?: (insightId: string) => void;
   onExport?: (insightId: string) => void;
+  inWorkspace?: boolean;
 }
 
 const formatCurrency = (amount: number) => {
@@ -56,7 +57,8 @@ export default function InsightCard({
   expanded = false,
   onMarkImportant,
   onShareWithPod,
-  onExport
+  onExport,
+  inWorkspace = false
 }: InsightCardProps) {
   const totalACV = insight.customers.reduce(
     (sum, customer) => sum + customer.acv_impact,
@@ -190,7 +192,7 @@ export default function InsightCard({
             Add to Workspace
           </button>
           
-          {onExport && (
+          {inWorkspace && onExport && (
             <button
               onClick={(e) => {
                 e.stopPropagation();
