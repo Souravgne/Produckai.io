@@ -11,6 +11,10 @@ import {
   Loader2,
   AlertCircle,
   Flag,
+  ChevronRight,
+  CheckCircle,
+  Clock,
+  ClipboardList,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
@@ -30,6 +34,12 @@ interface DashboardMetrics {
   themesWeekOverWeek: number;
   totalCustomers: number;
   totalAcvImpact: number;
+  statusBreakdown: {
+    new: number;
+    read: number;
+    in_review: number;
+    planned: number;
+  };
 }
 
 interface FilterState {
@@ -45,6 +55,7 @@ interface ImportantInsight {
   content: string;
   source: string;
   sentiment: 'positive' | 'negative' | 'neutral';
+  status: 'new' | 'read' | 'in_review' | 'planned';
   created_at: string;
 }
 
@@ -154,6 +165,12 @@ export default function DashboardHome() {
     themesWeekOverWeek: 0,
     totalCustomers: 0,
     totalAcvImpact: 0,
+    statusBreakdown: {
+      new: 0,
+      read: 0,
+      in_review: 0,
+      planned: 0,
+    },
   });
   const [filters, setFilters] = useState<FilterState>({
     dateRange: 'all',
@@ -176,7 +193,7 @@ export default function DashboardHome() {
       // Get total insights
       const { data: insights, error: insightsError } = await supabase
         .from('insights')
-        .select('id, created_at');
+        .select('id, created_at, status');
 
       if (insightsError) throw insightsError;
 
@@ -205,6 +222,14 @@ export default function DashboardHome() {
       const totalAcv =
         customers?.reduce((sum, c) => sum + (c.acv_impact || 0), 0) || 0;
 
+      // Calculate status breakdown
+      const statusBreakdown = {
+        new: insights?.filter(i => i.status === 'new').length || 0,
+        read: insights?.filter(i => i.status === 'read').length || 0,
+        in_review: insights?.filter(i => i.status === 'in_review').length || 0,
+        planned: insights?.filter(i => i.status === 'planned').length || 0,
+      };
+
       setMetrics({
         totalInsights: insights?.length || 0,
         newInsightsThisWeek: newInsights.length,
@@ -212,6 +237,7 @@ export default function DashboardHome() {
         themesWeekOverWeek: Math.round(((themes?.length || 0) / 100) * 15), // Example calculation
         totalCustomers: uniqueCustomers.size,
         totalAcvImpact: totalAcv,
+        statusBreakdown,
       });
     } catch (error) {
       console.error('Error loading dashboard metrics:', error);
@@ -238,7 +264,7 @@ export default function DashboardHome() {
       // Fetch the actual insights from Supabase
       const { data, error } = await supabase
         .from('insights')
-        .select('id, content, source, sentiment, created_at')
+        .select('id, content, source, sentiment, status, created_at')
         .in('id', importantIds);
 
       if (error) throw error;
@@ -255,6 +281,50 @@ export default function DashboardHome() {
       notation: 'compact',
       maximumFractionDigits: 1,
     }).format(amount);
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'new':
+        return 'bg-blue-50 border-blue-200 text-blue-700';
+      case 'read':
+        return 'bg-gray-50 border-gray-200 text-gray-700';
+      case 'in_review':
+        return 'bg-yellow-50 border-yellow-200 text-yellow-700';
+      case 'planned':
+        return 'bg-green-50 border-green-200 text-green-700';
+      default:
+        return 'bg-gray-50 border-gray-200 text-gray-700';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'new':
+        return <MessageSquare className="w-5 h-5" />;
+      case 'read':
+        return <CheckCircle className="w-5 h-5" />;
+      case 'in_review':
+        return <Clock className="w-5 h-5" />;
+      case 'planned':
+        return <ClipboardList className="w-5 h-5" />;
+      default:
+        return <MessageSquare className="w-5 h-5" />;
+    }
+  };
+
+  const getStatusName = (status: string) => {
+    switch (status) {
+      case 'in_review':
+        return 'In Review';
+      default:
+        return status.charAt(0).toUpperCase() + status.slice(1);
+    }
+  };
+
+  const calculatePercentage = (count: number, total: number) => {
+    if (total === 0) return 0;
+    return Math.round((count / total) * 100);
   };
 
   return (
@@ -300,6 +370,130 @@ export default function DashboardHome() {
             icon={TrendingUp}
             onClick={() => navigate('/dashboard/trends')}
           />
+        </div>
+
+        {/* Insights by Status Section */}
+        <div className="bg-white p-6 rounded-xl border border-gray-200">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-gray-900">Insights by Status</h2>
+            <button 
+              onClick={() => navigate('/dashboard/insights')}
+              className="text-blue-600 hover:text-blue-800 text-sm flex items-center"
+            >
+              View All
+              <ChevronRight className="w-4 h-4 ml-1" />
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* New Insights */}
+            <div className={`p-4 rounded-lg border ${getStatusColor('new')}`}>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  {getStatusIcon('new')}
+                  <h3 className="font-medium">New</h3>
+                </div>
+                <span className="text-lg font-bold">{metrics.statusBreakdown.new}</span>
+              </div>
+              <div className="w-full bg-blue-100 rounded-full h-2.5">
+                <div 
+                  className="bg-blue-600 h-2.5 rounded-full" 
+                  style={{ width: `${calculatePercentage(metrics.statusBreakdown.new, metrics.totalInsights)}%` }}
+                ></div>
+              </div>
+              <div className="mt-2 text-sm">
+                {calculatePercentage(metrics.statusBreakdown.new, metrics.totalInsights)}% of total
+              </div>
+              <button 
+                onClick={() => navigate('/dashboard/insights?status=new')}
+                className="mt-2 text-sm text-blue-700 hover:text-blue-900 flex items-center"
+              >
+                View insights
+                <ChevronRight className="w-4 h-4 ml-1" />
+              </button>
+            </div>
+
+            {/* Read Insights */}
+            <div className={`p-4 rounded-lg border ${getStatusColor('read')}`}>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  {getStatusIcon('read')}
+                  <h3 className="font-medium">Read</h3>
+                </div>
+                <span className="text-lg font-bold">{metrics.statusBreakdown.read}</span>
+              </div>
+              <div className="w-full bg-gray-100 rounded-full h-2.5">
+                <div 
+                  className="bg-gray-600 h-2.5 rounded-full" 
+                  style={{ width: `${calculatePercentage(metrics.statusBreakdown.read, metrics.totalInsights)}%` }}
+                ></div>
+              </div>
+              <div className="mt-2 text-sm">
+                {calculatePercentage(metrics.statusBreakdown.read, metrics.totalInsights)}% of total
+              </div>
+              <button 
+                onClick={() => navigate('/dashboard/insights?status=read')}
+                className="mt-2 text-sm text-gray-700 hover:text-gray-900 flex items-center"
+              >
+                View insights
+                <ChevronRight className="w-4 h-4 ml-1" />
+              </button>
+            </div>
+
+            {/* In Review Insights */}
+            <div className={`p-4 rounded-lg border ${getStatusColor('in_review')}`}>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  {getStatusIcon('in_review')}
+                  <h3 className="font-medium">In Review</h3>
+                </div>
+                <span className="text-lg font-bold">{metrics.statusBreakdown.in_review}</span>
+              </div>
+              <div className="w-full bg-yellow-100 rounded-full h-2.5">
+                <div 
+                  className="bg-yellow-600 h-2.5 rounded-full" 
+                  style={{ width: `${calculatePercentage(metrics.statusBreakdown.in_review, metrics.totalInsights)}%` }}
+                ></div>
+              </div>
+              <div className="mt-2 text-sm">
+                {calculatePercentage(metrics.statusBreakdown.in_review, metrics.totalInsights)}% of total
+              </div>
+              <button 
+                onClick={() => navigate('/dashboard/insights?status=in_review')}
+                className="mt-2 text-sm text-yellow-700 hover:text-yellow-900 flex items-center"
+              >
+                View insights
+                <ChevronRight className="w-4 h-4 ml-1" />
+              </button>
+            </div>
+
+            {/* Planned Insights */}
+            <div className={`p-4 rounded-lg border ${getStatusColor('planned')}`}>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  {getStatusIcon('planned')}
+                  <h3 className="font-medium">Planned</h3>
+                </div>
+                <span className="text-lg font-bold">{metrics.statusBreakdown.planned}</span>
+              </div>
+              <div className="w-full bg-green-100 rounded-full h-2.5">
+                <div 
+                  className="bg-green-600 h-2.5 rounded-full" 
+                  style={{ width: `${calculatePercentage(metrics.statusBreakdown.planned, metrics.totalInsights)}%` }}
+                ></div>
+              </div>
+              <div className="mt-2 text-sm">
+                {calculatePercentage(metrics.statusBreakdown.planned, metrics.totalInsights)}% of total
+              </div>
+              <button 
+                onClick={() => navigate('/dashboard/insights?status=planned')}
+                className="mt-2 text-sm text-green-700 hover:text-green-900 flex items-center"
+              >
+                View insights
+                <ChevronRight className="w-4 h-4 ml-1" />
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Quick Actions */}
@@ -371,6 +565,14 @@ export default function DashboardHome() {
                     </span>
                     <span className="text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">
                       {insight.source}
+                    </span>
+                    <span className={`text-xs px-1.5 py-0.5 rounded ${
+                      insight.status === 'new' ? 'bg-blue-50 text-blue-700' :
+                      insight.status === 'read' ? 'bg-gray-50 text-gray-700' :
+                      insight.status === 'in_review' ? 'bg-yellow-50 text-yellow-700' :
+                      'bg-green-50 text-green-700'
+                    }`}>
+                      {getStatusName(insight.status)}
                     </span>
                   </div>
                   <p className="text-sm text-gray-900">{insight.content}</p>
