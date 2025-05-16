@@ -544,7 +544,7 @@ export default function DashboardHome() {
             <div className="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100">
               {importantInsights.map((insight) => (
                 <div 
-                  key={insight.id} 
+                  key={`important-${insight.id}`} 
                   className="p-4 hover:bg-gray-50 cursor-pointer"
                   onClick={() => navigate('/dashboard/insights')}
                 >
@@ -558,7 +558,10 @@ export default function DashboardHome() {
                           : 'bg-gray-50 text-gray-700'
                       }`}
                     >
-                      {insight.sentiment.charAt(0).toUpperCase() + insight.sentiment.slice(1)}
+                      {typeof insight.sentiment === 'string'
+                        ? insight.sentiment.charAt(0).toUpperCase() +
+                          insight.sentiment.slice(1)
+                        : 'Unknown'}
                     </span>
                     <span className="text-xs text-gray-500">
                       {new Date(insight.created_at).toLocaleDateString()}

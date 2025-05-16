@@ -42,9 +42,9 @@ interface FilterState {
 export default function InsightsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const themeId = searchParams.get('theme');
+  const statusParam = searchParams.get('status');
   const [themeName, setThemeName] = useState<string>();
   const [insights, setInsights] = useState<InsightData[]>([]);
-  const [importantInsights, setImportantInsights] = useState<InsightData[]>([]);
   const [themes, setThemes] = useState<{ id: string; name: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -77,12 +77,21 @@ export default function InsightsPage() {
   useEffect(() => {
     loadThemes();
     loadFilterOptions();
+    
+    // Apply status filter from URL parameter
+    if (statusParam) {
+      setFilters(prev => ({
+        ...prev,
+        status: [statusParam as 'new' | 'read' | 'in_review' | 'planned']
+      }));
+    }
+    
     if (themeId) {
       loadThemeName();
     } else {
       loadInsights();
     }
-  }, [themeId]);
+  }, [themeId, statusParam]);
 
   const loadFilterOptions = async () => {
     try {
@@ -333,7 +342,7 @@ export default function InsightsPage() {
         sources: [
           {
             type: insight.source,
-            content: insight.content,
+            content: insight.content
           },
         ],
         themes: insight.themes,
@@ -341,9 +350,6 @@ export default function InsightsPage() {
       }));
 
       setInsights(processedInsights);
-      
-      // Set important insights
-      setImportantInsights(processedInsights.filter(insight => insight.isImportant));
     } catch (error) {
       console.error('Error loading insights:', error);
       setError(
@@ -360,8 +366,30 @@ export default function InsightsPage() {
     }
   }, [filters]);
 
+  // Check for URL parameters on component mount
+  useEffect(() => {
+    if (statusParam && !themeId) {
+      // Set the status filter based on URL parameter
+      setFilters(prev => ({
+        ...prev,
+        status: [statusParam as 'new' | 'read' | 'in_review' | 'planned']
+      }));
+    }
+  }, []);
+
   const handleFilterChange = (newFilters: Partial<FilterState>) => {
     setFilters((prev) => ({ ...prev, ...newFilters }));
+    
+    // Update URL if status filter changes
+    if (newFilters.status !== undefined) {
+      const newParams = new URLSearchParams(searchParams);
+      if (newFilters.status.length === 1) {
+        newParams.set('status', newFilters.status[0]);
+      } else {
+        newParams.delete('status');
+      }
+      setSearchParams(newParams);
+    }
   };
 
   const clearFilters = () => {
@@ -378,6 +406,11 @@ export default function InsightsPage() {
       status: [],
       tags: [],
     });
+    
+    // Clear status from URL
+    const newParams = new URLSearchParams(searchParams);
+    newParams.delete('status');
+    setSearchParams(newParams);
   };
 
   const getActiveFiltersCount = () => {
@@ -415,10 +448,6 @@ export default function InsightsPage() {
     });
     
     setInsights(updatedInsights);
-    
-    // Update important insights list
-    const updatedImportantInsights = updatedInsights.filter(insight => insight.isImportant);
-    setImportantInsights(updatedImportantInsights);
     
     // Save to local storage
     const importantIds = updatedInsights
