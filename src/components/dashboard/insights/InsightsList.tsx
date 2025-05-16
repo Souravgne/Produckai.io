@@ -27,6 +27,7 @@ export default function InsightsList({
           expanded={insight.id === selectedInsightId}
           onMarkImportant={onMarkImportant}
           onShareWithPod={onShareWithPod}
+          onExport={(id) => console.log(`Export insight ${id}`)}
         />
       ))}
     </div>

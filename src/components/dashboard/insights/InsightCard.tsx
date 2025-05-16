@@ -6,6 +6,7 @@ import {
   Tag,
   Flag,
   Share2,
+  ExportIcon
 } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 
@@ -45,6 +46,7 @@ interface InsightCardProps {
   expanded?: boolean;
   onMarkImportant?: (insightId: string) => void;
   onShareWithPod?: (insightId: string) => void;
+  onExport?: (insightId: string) => void;
 }
 
 const formatCurrency = (amount: number) => {
@@ -62,6 +64,7 @@ export default function InsightCard({
   expanded = false,
   onMarkImportant,
   onShareWithPod,
+  onExport
 }: InsightCardProps) {
   const totalACV = insight.customers.reduce(
     (sum, customer) => sum + customer.acv_impact,
@@ -177,6 +180,7 @@ export default function InsightCard({
                 ? 'bg-amber-100 text-amber-700'
                 : 'bg-amber-50 text-amber-700'
             }`}
+            title={insight.isImportant ? "Remove from important" : "Mark as important"}
           >
             <Flag className="w-4 h-4" />
             {insight.isImportant ? 'Important' : 'Mark Important'}
@@ -188,10 +192,25 @@ export default function InsightCard({
               onShareWithPod?.(insight.id);
             }}
             className="px-3 py-1.5 bg-blue-50 text-blue-700 rounded hover:bg-blue-100 transition-colors flex items-center gap-1.5 text-sm"
+            title="Add to workspace"
           >
             <Share2 className="w-4 h-4" />
             Add to Workspace
           </button>
+          
+          {onExport && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onExport?.(insight.id);
+              }}
+              className="px-3 py-1.5 bg-gray-50 text-gray-700 rounded hover:bg-gray-100 transition-colors flex items-center gap-1.5 text-sm"
+              title="Export insight"
+            >
+              <ExternalLink className="w-4 h-4" />
+              Export
+            </button>
+          )}
         </div>
 
         {expanded && (

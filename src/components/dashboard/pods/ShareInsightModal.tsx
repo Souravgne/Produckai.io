@@ -50,17 +50,26 @@ export default function ShareInsightModal({
   const [availableInsights, setAvailableInsights] = useState<Insight[]>([]);
   const [selectedInsightId, setSelectedInsightId] = useState<string>(insightId);
   const [searchQuery, setSearchQuery] = useState('');
+  const [importantInsights, setImportantInsights] = useState<string[]>([]);
 
   // Load existing tags, pods, and insight details when modal opens
   useEffect(() => {
     loadExistingTags();
     loadPods();
     loadAvailableInsights();
+    loadImportantInsights();
     if (insightId) {
       setSelectedInsightId(insightId);
       loadInsightDetails(insightId);
     }
   }, [insightId]);
+
+  const loadImportantInsights = () => {
+    const storedImportantInsights = localStorage.getItem('importantInsights');
+    if (storedImportantInsights) {
+      setImportantInsights(JSON.parse(storedImportantInsights));
+    }
+  };
 
   const loadExistingTags = async () => {
     try {
@@ -241,11 +250,16 @@ export default function ShareInsightModal({
 
       if (error) throw error;
 
-      toast.success('Insight shared successfully');
+      // If the insight is marked as important, ensure it stays that way
+      if (importantInsights.includes(selectedInsightId)) {
+        // No need to update localStorage as it's already there
+      }
+
+      toast.success('Insight added to workspace successfully');
       onShare();
     } catch (error) {
       console.error('Error sharing insight:', error);
-      toast.error('Failed to share insight');
+      toast.error('Failed to add insight to workspace');
     } finally {
       setLoading(false);
     }
@@ -431,6 +445,12 @@ export default function ShareInsightModal({
                         }`}>
                           {insight.status === 'in_review' ? 'In Review' : 
                            insight.status.charAt(0).toUpperCase() + insight.status.slice(1)}
+                        </span>
+                      )}
+                      {importantInsights.includes(insight.id) && (
+                        <span className="text-xs text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded flex items-center gap-1">
+                          <Flag className="w-3 h-3" />
+                          Important
                         </span>
                       )}
                     </div>

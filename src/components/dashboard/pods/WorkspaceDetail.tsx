@@ -347,49 +347,63 @@ export default function WorkspaceDetail({ podId }: WorkspaceDetailProps) {
     }
   };
 
-  const handleToggleImportant = (insightId: string) => {
+  const handleExportToLinear = async () => {
+    // Placeholder for Linear export functionality
+    toast.info('Export to Linear coming soon!');
+  };
+
+  const handleExport = (podInsightId: string) => {
+    // Show export options modal or dropdown
+    const exportOptions = document.getElementById(`export-options-${podInsightId}`);
+    if (exportOptions) {
+      exportOptions.classList.toggle('hidden');
+    }
+  };
+
+  const handleViewWorkspace = (podId: string) => {
+    navigate(`/dashboard/pods/${podId}`);
+  };
+
+  const handleToggleImportant = async (insightId: string, insightOriginalId: string) => {
     const updatedImportantInsights = [...importantInsights];
     
-    if (updatedImportantInsights.includes(insightId)) {
+    if (updatedImportantInsights.includes(insightOriginalId)) {
       // Remove from important
-      const index = updatedImportantInsights.indexOf(insightId);
+      const index = updatedImportantInsights.indexOf(insightOriginalId);
       updatedImportantInsights.splice(index, 1);
       toast.info('Removed from important insights');
     } else {
       // Add to important
-      updatedImportantInsights.push(insightId);
+      updatedImportantInsights.push(insightOriginalId);
+      
+      // Update status to 'in_review' if not already planned
+      const insight = insights.find(i => i.id === insightId);
+      if (insight && insight.insights?.status !== 'planned') {
+        await supabase
+          .from('insights')
+          .update({ status: 'in_review' })
+          .eq('id', insightOriginalId);
+          
+        // Update local state
+        setInsights(insights.map(i => {
+          if (i.id === insightId && i.insights && i.insights.status !== 'planned') {
+            return {
+              ...i,
+              insights: {
+                ...i.insights,
+                status: 'in_review'
+              }
+            };
+          }
+          return i;
+        }));
+      }
+      
       toast.success('Added to important insights');
     }
     
     setImportantInsights(updatedImportantInsights);
     localStorage.setItem('importantInsights', JSON.stringify(updatedImportantInsights));
-  };
-
-  const filteredInsights = insights.filter(insight => {
-    if (!searchQuery) return true;
-    
-    const content = insight.insights?.content || '';
-    const note = insight.note || '';
-    const tags = insight.tags || [];
-    
-    return (
-      content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      note.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
-    );
-  });
-
-  const getSentimentClass = (sentiment?: string) => {
-    if (!sentiment) return 'bg-gray-50 text-gray-700';
-    
-    switch (sentiment.toLowerCase()) {
-      case 'positive':
-        return 'bg-green-50 text-green-700';
-      case 'negative':
-        return 'bg-red-50 text-red-700';
-      default:
-        return 'bg-blue-50 text-blue-700';
-    }
   };
 
   const getStatusBadge = (status?: string) => {
@@ -514,6 +528,20 @@ export default function WorkspaceDetail({ podId }: WorkspaceDetailProps) {
     );
   }
 
+  const filteredInsights = insights.filter(insight => {
+    if (!searchQuery) return true;
+    
+    const content = insight.insights?.content || '';
+    const note = insight.note || '';
+    const tags = insight.tags || [];
+    
+    return (
+      content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      note.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+    );
+  });
+
   return (
     <div className="max-w-7xl mx-auto">
       {/* Header */}
@@ -627,7 +655,7 @@ export default function WorkspaceDetail({ podId }: WorkspaceDetailProps) {
                       
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
-                          {importantInsights.includes(insight.id) && (
+                          {importantInsights.includes(insight.insight_id) && (
                             <span className="px-2 py-1 bg-amber-100 text-amber-800 text-xs font-medium rounded-full">
                               Important
                             </span>
@@ -656,7 +684,11 @@ export default function WorkspaceDetail({ podId }: WorkspaceDetailProps) {
                           )}
                           
                           {insight.insights?.sentiment && (
-                            <span className={`px-2 py-1 text-xs font-medium rounded-lg ${getSentimentClass(insight.insights.sentiment)}`}>
+                            <span className={`px-2 py-1 text-xs font-medium rounded-lg ${
+                              insight.insights.sentiment === 'positive' ? 'bg-green-50 text-green-700' :
+                              insight.insights.sentiment === 'negative' ? 'bg-red-50 text-red-700' :
+                              'bg-blue-50 text-blue-700'
+                            }`}>
                               {insight.insights.sentiment}
                             </span>
                           )}
@@ -687,6 +719,7 @@ export default function WorkspaceDetail({ podId }: WorkspaceDetailProps) {
                             <button 
                               onClick={() => handleOpenCommentPanel(insight)}
                               className="text-gray-500 hover:text-gray-700 flex items-center gap-1"
+                              title="View comments"
                             >
                               <MessageSquare className="w-4 h-4" />
                               <span className="text-xs">{insight.pod_comments?.length || 0}</span>
@@ -694,22 +727,20 @@ export default function WorkspaceDetail({ podId }: WorkspaceDetailProps) {
                 
                             
                             <button 
-                              onClick={() => handleToggleImportant(insight.id)}
-                              className={`${importantInsights.includes(insight.id) ? 'text-amber-600' : 'text-gray-500 hover:text-amber-600'}`}
+                              onClick={() => handleToggleImportant(insight.id, insight.insight_id)}
+                              className={`${importantInsights.includes(insight.insight_id) ? 'text-amber-600' : 'text-gray-500 hover:text-amber-600'}`}
+                              title={importantInsights.includes(insight.insight_id) ? "Remove from important" : "Mark as important"}
                             >
                               <Flag className="w-4 h-4" />
-                            </button>
-                            
-                            <button className="text-gray-500 hover:text-teal-600">
-                              <Bookmark className="w-4 h-4" />
                             </button>
                             
                             <div className="relative">
                               <button 
                                 onClick={() => setShowExportOptions(showExportOptions === insight.id ? null : insight.id)}
                                 className="text-gray-500 hover:text-purple-600"
+                                title="Export insight"
                               >
-                                <Share2 className="w-4 h-4" />
+                                <ExternalLink className="w-4 h-4" />
                               </button>
                               
                               {showExportOptions === insight.id && (

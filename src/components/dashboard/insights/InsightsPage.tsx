@@ -520,6 +520,7 @@ export default function InsightsPage() {
                 expanded={insight.id === selectedInsightId}
                 onMarkImportant={handleMarkImportant}
                 onShareWithPod={handleShareWithPod}
+                onExport={(id) => toast.info(`Export functionality coming soon for insight ${id}`)}
               />
             ))}
           </div>
@@ -1247,7 +1248,7 @@ export default function InsightsPage() {
           onShare={() => {
             setShowShareModal(false);
             setInsightToShare(null);
-            toast.success('Insight shared successfully');
+            toast.success('Insight added to workspace successfully');
           }}
         />
       )}
