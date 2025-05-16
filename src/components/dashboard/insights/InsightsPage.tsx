@@ -508,25 +508,6 @@ export default function InsightsPage() {
         </p>
       </div>
 
-      {importantInsights.length > 0 && (
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Important Insights</h2>
-          <div className="space-y-4">
-            {importantInsights.map((insight) => (
-              <InsightCard
-                key={`important-${insight.id}`}
-                insight={insight}
-                onClick={() => handleInsightClick(insight)}
-                expanded={insight.id === selectedInsightId}
-                onMarkImportant={handleMarkImportant}
-                onShareWithPod={handleShareWithPod}
-                onExport={(id) => toast.info(`Export functionality coming soon for insight ${id}`)}
-              />
-            ))}
-          </div>
-        </div>
-      )}
-
       <div className="mb-6">
         <div className="bg-white rounded-xl border border-gray-200 p-4">
           <div className="flex items-center justify-between mb-4">
