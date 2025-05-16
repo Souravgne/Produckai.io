@@ -1,13 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Users,
-  DollarSign,
-  ExternalLink,
-  Tag,
-  Flag,
-  Share2,
-  ExportIcon
-} from 'lucide-react';
+import { Users, DollarSign, ExternalLink, Tag, Flag, Share2, ImportIcon as ExportIcon } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 
 interface Customer {
