@@ -9,11 +9,13 @@ import {
   Calendar, 
   ArrowUpRight, 
   AlertCircle,
-  Loader2
+  Loader2,
+  LogIn
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 interface FeatureRequest {
   id: string;
@@ -29,6 +31,7 @@ interface FeatureRequest {
 
 export default function RoadmapPage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [featureRequests, setFeatureRequests] = useState<FeatureRequest[]>([
     {
       id: 'csv-support',
@@ -84,6 +87,7 @@ export default function RoadmapPage() {
   const [showCommentForm, setShowCommentForm] = useState<string | null>(null);
   const [comment, setComment] = useState('');
   const [submittingComment, setSubmittingComment] = useState(false);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
   // Load feature requests from database on component mount
   useEffect(() => {
@@ -91,7 +95,7 @@ export default function RoadmapPage() {
       try {
         setLoading(true);
         
-        // Fetch feature requests
+        // Fetch feature requests - this should be public access
         const { data: features, error: featuresError } = await supabase
           .from('feature_requests')
           .select('*')
@@ -212,7 +216,7 @@ export default function RoadmapPage() {
 
   const handleVote = async (featureId: string, currentVotes: number, userVoted: boolean) => {
     if (!user) {
-      toast.error('You must be logged in to vote');
+      setShowLoginPrompt(true);
       return;
     }
     
@@ -283,7 +287,7 @@ export default function RoadmapPage() {
 
   const handleAddComment = async (featureId: string) => {
     if (!user) {
-      toast.error('You must be logged in to comment');
+      setShowLoginPrompt(true);
       return;
     }
     
@@ -325,6 +329,14 @@ export default function RoadmapPage() {
       toast.error('Failed to add comment. Please try again.');
     } finally {
       setSubmittingComment(false);
+    }
+  };
+
+  const handleRequestFeature = () => {
+    if (!user) {
+      setShowLoginPrompt(true);
+    } else {
+      setShowRequestForm(true);
     }
   };
 
@@ -442,7 +454,7 @@ export default function RoadmapPage() {
             </div>
             
             <button
-              onClick={() => setShowRequestForm(true)}
+              onClick={handleRequestFeature}
               className="px-4 py-2 bg-[#00A0C1] text-white rounded-lg hover:bg-[#008a9a] transition-colors flex items-center gap-2"
             >
               <Plus className="w-5 h-5" />
@@ -468,7 +480,7 @@ export default function RoadmapPage() {
             <h3 className="text-xl font-medium text-gray-900 mb-2">No feature requests yet</h3>
             <p className="text-gray-600 mb-6">Be the first to suggest a feature for our product roadmap.</p>
             <button
-              onClick={() => setShowRequestForm(true)}
+              onClick={handleRequestFeature}
               className="px-6 py-3 bg-[#00A0C1] text-white rounded-lg hover:bg-[#008a9a] transition-colors inline-flex items-center gap-2"
             >
               <Plus className="w-5 h-5" />
@@ -645,6 +657,54 @@ export default function RoadmapPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Login Prompt Modal */}
+      {showLoginPrompt && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl max-w-md w-full p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold text-gray-900">Login Required</h2>
+              <button
+                onClick={() => setShowLoginPrompt(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="mb-6">
+              <p className="text-gray-600 mb-4">
+                You need to be logged in to ProduckAI to request features, vote, or add comments.
+              </p>
+              <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                <p className="text-blue-700 text-sm">
+                  Creating an account is free and gives you access to all product management features.
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowLoginPrompt(false)}
+                className="px-4 py-2 text-gray-700 hover:text-gray-900"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  setShowLoginPrompt(false);
+                  navigate('/login');
+                }}
+                className="px-4 py-2 bg-[#00A0C1] text-white rounded-lg hover:bg-[#008a9a] transition-colors flex items-center gap-2"
+              >
+                <LogIn className="w-5 h-5" />
+                Login to Continue
+              </button>
+            </div>
           </div>
         </div>
       )}
