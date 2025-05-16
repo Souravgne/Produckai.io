@@ -58,6 +58,7 @@ export default function InsightsPage() {
   const [tags, setTags] = useState<string[]>([]);
   const [showShareModal, setShowShareModal] = useState(false);
   const [insightToShare, setInsightToShare] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<'acv' | 'frequency'>('acv');
 
   // Default filter state
   const [filters, setFilters] = useState<FilterState>({
@@ -513,6 +514,21 @@ export default function InsightsPage() {
     );
   };
 
+  // Sort insights based on selected criteria
+  const sortInsights = (insightsToSort: InsightData[]) => {
+    return [...insightsToSort].sort((a, b) => {
+      if (sortBy === 'acv') {
+        // Sort by ACV impact (descending)
+        const acvA = a.customers.reduce((sum, customer) => sum + (customer.acv_impact || 0), 0);
+        const acvB = b.customers.reduce((sum, customer) => sum + (customer.acv_impact || 0), 0);
+        return acvB - acvA;
+      } else {
+        // Sort by frequency (number of customers, descending)
+        return b.customers.length - a.customers.length;
+      }
+    });
+  };
+
   if (themeId && themeName) {
     return (
       <ThemeInsights
@@ -549,7 +565,19 @@ export default function InsightsPage() {
                 </span>
               )}
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600">Sort by:</span>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as 'acv' | 'frequency')}
+                  className="border border-gray-300 rounded-md text-sm p-1"
+                >
+                  <option value="acv">ACV Impact</option>
+                  <option value="frequency">Customer Frequency</option>
+                </select>
+              </div>
+              
               {getActiveFiltersCount() > 0 && (
                 <button
                   onClick={clearFilters}
@@ -1238,7 +1266,7 @@ export default function InsightsPage() {
         <div className="mt-8">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">All Insights</h2>
           <InsightsList
-            insights={insights}
+            insights={sortInsights(insights)}
             onInsightClick={handleInsightClick}
             selectedInsightId={selectedInsightId}
             onMarkImportant={handleMarkImportant}
