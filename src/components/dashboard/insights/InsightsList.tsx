@@ -27,7 +27,6 @@ export default function InsightsList({
           expanded={insight.id === selectedInsightId}
           onMarkImportant={onMarkImportant}
           onShareWithPod={onShareWithPod}
-          onAddToBacklog={() => {}}
         />
       ))}
     </div>

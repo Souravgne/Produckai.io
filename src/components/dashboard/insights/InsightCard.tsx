@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Users,
   DollarSign,
@@ -6,8 +6,8 @@ import {
   Tag,
   Flag,
   Share2,
-  ListPlus,
 } from 'lucide-react';
+import { supabase } from '../../../lib/supabase';
 
 interface Customer {
   customer_id: string;
@@ -31,6 +31,7 @@ export interface InsightData {
   content: string;
   source: string;
   sentiment: 'positive' | 'negative' | 'neutral';
+  status: 'new' | 'read' | 'in_review' | 'planned';
   created_at: string;
   customers: Customer[];
   sources: Source[];
@@ -44,7 +45,6 @@ interface InsightCardProps {
   expanded?: boolean;
   onMarkImportant?: (insightId: string) => void;
   onShareWithPod?: (insightId: string) => void;
-  onAddToBacklog?: () => void;
 }
 
 const formatCurrency = (amount: number) => {
@@ -62,12 +62,27 @@ export default function InsightCard({
   expanded = false,
   onMarkImportant,
   onShareWithPod,
-  onAddToBacklog,
 }: InsightCardProps) {
   const totalACV = insight.customers.reduce(
     (sum, customer) => sum + customer.acv_impact,
     0
   );
+
+  // Get status badge color and text
+  const getStatusBadge = () => {
+    switch (insight.status) {
+      case 'new':
+        return <span className="px-2 py-1 text-xs font-medium rounded bg-blue-50 text-blue-700">New</span>;
+      case 'read':
+        return <span className="px-2 py-1 text-xs font-medium rounded bg-gray-50 text-gray-700">Read</span>;
+      case 'in_review':
+        return <span className="px-2 py-1 text-xs font-medium rounded bg-yellow-50 text-yellow-700">In Review</span>;
+      case 'planned':
+        return <span className="px-2 py-1 text-xs font-medium rounded bg-green-50 text-green-700">Planned</span>;
+      default:
+        return null;
+    }
+  };
 
   return (
     <div
@@ -106,6 +121,7 @@ export default function InsightCard({
                   Important
                 </span>
               )}
+              {getStatusBadge()}
             </div>
             <p className="text-gray-900 font-medium">{insight.content}</p>
 

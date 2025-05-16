@@ -14,6 +14,8 @@ import {
   ChevronDown,
   ChevronUp,
   BarChart2,
+  TrendingUp,
+  TrendingDown,
 } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 import { InsightData } from './InsightCard';
@@ -33,7 +35,7 @@ interface FilterState {
   sources: string[];
   sentiment: ('positive' | 'negative' | 'neutral')[];
   priority: ('high' | 'medium' | 'low')[];
-  status: ('new' | 'in_review' | 'planned' | 'implemented')[];
+  status: ('new' | 'read' | 'in_review' | 'planned')[];
   tags: string[];
 }
 
@@ -200,7 +202,7 @@ export default function InsightsPage() {
       // Step 1: Fetch basic insights
       let insightsQuery = supabase
         .from('insights')
-        .select('id, content, source, sentiment, created_at');
+        .select('id, content, source, sentiment, status, created_at');
 
       // Apply theme filter (client-side only for now)
       // Apply date range filter
@@ -236,6 +238,11 @@ export default function InsightsPage() {
       // Apply sentiment filter
       if (filters.sentiment.length > 0) {
         insightsQuery = insightsQuery.in('sentiment', filters.sentiment);
+      }
+
+      // Apply status filter
+      if (filters.status.length > 0) {
+        insightsQuery = insightsQuery.in('status', filters.status);
       }
 
       const { data: insightsData, error: insightsError } = await insightsQuery;
@@ -320,6 +327,7 @@ export default function InsightsPage() {
         content: insight.content,
         source: insight.source,
         sentiment: insight.sentiment,
+        status: insight.status || 'new', // Default to 'new' if status is not set
         created_at: insight.created_at,
         customers: insight.customers,
         sources: [
@@ -388,11 +396,20 @@ export default function InsightsPage() {
     return count;
   };
 
-  const handleMarkImportant = (insightId: string) => {
+  const handleMarkImportant = async (insightId: string) => {
     // Update the insights list
     const updatedInsights = insights.map(insight => {
       if (insight.id === insightId) {
-        return { ...insight, isImportant: !insight.isImportant };
+        const newIsImportant = !insight.isImportant;
+        
+        // Update status to 'in_review' if marked as important
+        const newStatus = newIsImportant ? 'in_review' : insight.status;
+        
+        return { 
+          ...insight, 
+          isImportant: newIsImportant,
+          status: newStatus
+        };
       }
       return insight;
     });
@@ -410,20 +427,61 @@ export default function InsightsPage() {
     
     localStorage.setItem('importantInsights', JSON.stringify(importantIds));
     
-    // Show toast notification
+    // Update status in database if marked as important
     const insight = insights.find(i => i.id === insightId);
     if (insight) {
       if (!insight.isImportant) {
-        toast.success('Insight marked as important');
+        // Marking as important - update status to 'in_review'
+        await supabase
+          .from('insights')
+          .update({ status: 'in_review' })
+          .eq('id', insightId);
+        
+        toast.success('Insight marked as important and status updated to In Review');
       } else {
         toast.info('Insight removed from important');
       }
     }
   };
 
-  const handleShareWithPod = (insightId: string) => {
+  const handleShareWithPod = async (insightId: string) => {
+    // Update status to 'in_review' when adding to workspace
+    await supabase
+      .from('insights')
+      .update({ status: 'in_review' })
+      .eq('id', insightId);
+    
+    // Update local state
+    setInsights(insights.map(insight => 
+      insight.id === insightId 
+        ? { ...insight, status: 'in_review' } 
+        : insight
+    ));
+    
     setInsightToShare(insightId);
     setShowShareModal(true);
+  };
+
+  const handleInsightClick = async (insight: InsightData) => {
+    // Update status to 'read' if it's currently 'new'
+    if (insight.status === 'new') {
+      // Update in database
+      await supabase
+        .from('insights')
+        .update({ status: 'read' })
+        .eq('id', insight.id);
+      
+      // Update in local state
+      setInsights(insights.map(i => 
+        i.id === insight.id 
+          ? { ...i, status: 'read' } 
+          : i
+      ));
+    }
+    
+    setSelectedInsightId(
+      insight.id === selectedInsightId ? undefined : insight.id
+    );
   };
 
   if (themeId && themeName) {
@@ -458,13 +516,10 @@ export default function InsightsPage() {
               <InsightCard
                 key={`important-${insight.id}`}
                 insight={insight}
-                onClick={() => setSelectedInsightId(
-                  insight.id === selectedInsightId ? undefined : insight.id
-                )}
+                onClick={() => handleInsightClick(insight)}
                 expanded={insight.id === selectedInsightId}
                 onMarkImportant={handleMarkImportant}
                 onShareWithPod={handleShareWithPod}
-                onAddToBacklog={() => {}}
               />
             ))}
           </div>
@@ -570,6 +625,26 @@ export default function InsightsPage() {
                 <option value="document">Documents</option>
                 <option value="zoom">Zoom</option>
                 <option value="csv">CSV Upload</option>
+              </select>
+            </div>
+
+            <div className="flex items-center gap-2 bg-white rounded-lg border border-gray-200 px-3 py-2">
+              <BarChart2 className="w-5 h-5 text-gray-400" />
+              <select
+                value={filters.status.length === 1 ? filters.status[0] : ''}
+                onChange={(e) => {
+                  const value = e.target.value as 'new' | 'read' | 'in_review' | 'planned' | '';
+                  handleFilterChange({
+                    status: value ? [value] : [],
+                  });
+                }}
+                className="border-0 bg-transparent focus:ring-0 text-sm"
+              >
+                <option value="">All Statuses</option>
+                <option value="new">New</option>
+                <option value="read">Read</option>
+                <option value="in_review">In Review</option>
+                <option value="planned">Planned</option>
               </select>
             </div>
           </div>
@@ -904,6 +979,26 @@ export default function InsightsPage() {
                       <div className="flex items-center">
                         <input
                           type="checkbox"
+                          id="status-read"
+                          checked={filters.status.includes('read')}
+                          onChange={(e) => {
+                            const newStatus = e.target.checked
+                              ? [...filters.status, 'read']
+                              : filters.status.filter((s) => s !== 'read');
+                            handleFilterChange({ status: newStatus });
+                          }}
+                          className="h-4 w-4 text-teal-600 rounded border-gray-300 focus:ring-teal-500"
+                        />
+                        <label
+                          htmlFor="status-read"
+                          className="ml-2 text-sm text-gray-700"
+                        >
+                          Read
+                        </label>
+                      </div>
+                      <div className="flex items-center">
+                        <input
+                          type="checkbox"
                           id="status-in-review"
                           checked={filters.status.includes('in_review')}
                           onChange={(e) => {
@@ -939,28 +1034,6 @@ export default function InsightsPage() {
                           className="ml-2 text-sm text-gray-700"
                         >
                           Planned
-                        </label>
-                      </div>
-                      <div className="flex items-center">
-                        <input
-                          type="checkbox"
-                          id="status-implemented"
-                          checked={filters.status.includes('implemented')}
-                          onChange={(e) => {
-                            const newStatus = e.target.checked
-                              ? [...filters.status, 'implemented']
-                              : filters.status.filter(
-                                  (s) => s !== 'implemented'
-                                );
-                            handleFilterChange({ status: newStatus });
-                          }}
-                          className="h-4 w-4 text-teal-600 rounded border-gray-300 focus:ring-teal-500"
-                        />
-                        <label
-                          htmlFor="status-implemented"
-                          className="ml-2 text-sm text-gray-700"
-                        >
-                          Implemented
                         </label>
                       </div>
                     </div>
@@ -1102,6 +1175,28 @@ export default function InsightsPage() {
                         </div>
                       ))}
 
+                    {filters.status.length > 0 &&
+                      filters.status.map((status) => (
+                        <div
+                          key={status}
+                          className="bg-teal-100 text-teal-800 text-xs font-medium px-2.5 py-1 rounded-full flex items-center"
+                        >
+                          <span>Status: {status.replace('_', ' ')}</span>
+                          <button
+                            onClick={() =>
+                              handleFilterChange({
+                                status: filters.status.filter(
+                                  (s) => s !== status
+                                ),
+                              })
+                            }
+                            className="ml-1 text-teal-600 hover:text-teal-800"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))}
+
                     {/* Add more active filter chips as needed */}
                   </div>
                 </div>
@@ -1133,11 +1228,7 @@ export default function InsightsPage() {
           <h2 className="text-xl font-semibold text-gray-900 mb-4">All Insights</h2>
           <InsightsList
             insights={insights}
-            onInsightClick={(insight) =>
-              setSelectedInsightId(
-                insight.id === selectedInsightId ? undefined : insight.id
-              )
-            }
+            onInsightClick={handleInsightClick}
             selectedInsightId={selectedInsightId}
             onMarkImportant={handleMarkImportant}
             onShareWithPod={handleShareWithPod}

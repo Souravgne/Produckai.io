@@ -5,7 +5,6 @@ import {
   AlertCircle,
   Star,
   Share2,
-  ListPlus,
   DollarSign,
   MessageSquare,
   Users,
@@ -101,6 +100,7 @@ export default function ThemeInsights({
           content,
           source,
           sentiment,
+          status,
           created_at,
           insight_customers (
             customer_id,
@@ -132,6 +132,7 @@ export default function ThemeInsights({
         content: insight.content,
         source: insight.source,
         sentiment: insight.sentiment,
+        status: insight.status || 'new', // Default to 'new' if status is not set
         created_at: insight.created_at,
         customers: insight.insight_customers || [],
         sources: [{
@@ -194,6 +195,94 @@ export default function ThemeInsights({
           : 'Failed to update theme priority'
       );
     }
+  };
+
+  const handleInsightClick = async (insight: InsightData) => {
+    // Update status to 'read' if it's currently 'new'
+    if (insight.status === 'new') {
+      // Update in database
+      await supabase
+        .from('insights')
+        .update({ status: 'read' })
+        .eq('id', insight.id);
+      
+      // Update in local state
+      setMetrics(prev => ({
+        ...prev,
+        insights: prev.insights.map(i => 
+          i.id === insight.id 
+            ? { ...i, status: 'read' } 
+            : i
+        )
+      }));
+    }
+  };
+
+  const handleMarkImportant = async (insightId: string) => {
+    // Get the current important insights from localStorage
+    const storedImportantInsights = localStorage.getItem('importantInsights');
+    const importantInsightIds = storedImportantInsights 
+      ? JSON.parse(storedImportantInsights) 
+      : [];
+    
+    // Check if this insight is already marked as important
+    const isCurrentlyImportant = importantInsightIds.includes(insightId);
+    
+    // Update the list of important insights
+    let updatedImportantIds;
+    if (isCurrentlyImportant) {
+      updatedImportantIds = importantInsightIds.filter((id: string) => id !== insightId);
+    } else {
+      updatedImportantIds = [...importantInsightIds, insightId];
+      
+      // Update status to 'in_review' if marking as important
+      await supabase
+        .from('insights')
+        .update({ status: 'in_review' })
+        .eq('id', insightId);
+      
+      // Update local state
+      setMetrics(prev => ({
+        ...prev,
+        insights: prev.insights.map(i => 
+          i.id === insightId 
+            ? { ...i, status: 'in_review' } 
+            : i
+        )
+      }));
+    }
+    
+    // Save back to localStorage
+    localStorage.setItem('importantInsights', JSON.stringify(updatedImportantIds));
+    
+    // Show toast notification
+    if (!isCurrentlyImportant) {
+      toast.success('Insight marked as important and status updated to In Review');
+    } else {
+      toast.info('Insight removed from important');
+    }
+  };
+
+  const handleShareWithPod = async (insightId: string) => {
+    // Update status to 'in_review' when adding to workspace
+    await supabase
+      .from('insights')
+      .update({ status: 'in_review' })
+      .eq('id', insightId);
+    
+    // Update local state
+    setMetrics(prev => ({
+      ...prev,
+      insights: prev.insights.map(i => 
+        i.id === insightId 
+          ? { ...i, status: 'in_review' } 
+          : i
+      )
+    }));
+    
+    // Navigate to share modal or show it
+    // This would typically be handled by the parent component
+    toast.success('Ready to add to workspace');
   };
 
   if (loading) {
@@ -289,16 +378,6 @@ export default function ThemeInsights({
           <Share2 className="w-5 h-5" />
           Share with Workspace
         </button>
-
-        <button
-          onClick={() => {
-            /* TODO: Implement backlog functionality */
-          }}
-          className="px-4 py-2 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition-colors flex items-center gap-2"
-        >
-          <ListPlus className="w-5 h-5" />
-          Add to Backlog
-        </button>
       </div>
 
       {/* Insights List */}
@@ -316,16 +395,10 @@ export default function ThemeInsights({
               <InsightCard
                 key={insight.id}
                 insight={insight}
+                onClick={() => handleInsightClick(insight)}
                 expanded={false}
-                onTagCritical={() => {
-                  /* TODO */
-                }}
-                onShareWithPod={() => {
-                  /* TODO */
-                }}
-                onAddToBacklog={() => {
-                  /* TODO */
-                }}
+                onMarkImportant={handleMarkImportant}
+                onShareWithPod={handleShareWithPod}
               />
             ))
           )}

@@ -12,7 +12,6 @@ import {
   DollarSign,
   Flag,
   Share2,
-  ListPlus,
   Sparkles,
   Tag,
   Loader2,
@@ -61,6 +60,7 @@ interface PodInsight {
     content: string;
     source: string;
     sentiment: string;
+    status: 'new' | 'read' | 'in_review' | 'planned';
   };
   user_profiles_view?: {
     full_name: string | null;
@@ -173,7 +173,8 @@ export default function WorkspaceDetail({ podId }: WorkspaceDetailProps) {
           insights (
             content,
             source,
-            sentiment
+            sentiment,
+            status
           ),
           user_profiles_view (
             full_name,
@@ -316,6 +317,26 @@ export default function WorkspaceDetail({ podId }: WorkspaceDetailProps) {
         console.error('Error creating Jira story:', data);
         toast.error(`Failed: ${data.error?.message || 'Unknown error'}`);
       } else {
+        // Update insight status to 'planned'
+        await supabase
+          .from('insights')
+          .update({ status: 'planned' })
+          .eq('id', insight.insight_id);
+          
+        // Update local state
+        setInsights(insights.map(i => {
+          if (i.id === insightId && i.insights) {
+            return {
+              ...i,
+              insights: {
+                ...i.insights,
+                status: 'planned'
+              }
+            };
+          }
+          return i;
+        }));
+        
         toast.success(`Jira Story Created: ${data.issue.key}`);
       }
     } catch (err: any) {
@@ -368,6 +389,23 @@ export default function WorkspaceDetail({ podId }: WorkspaceDetailProps) {
         return 'bg-red-50 text-red-700';
       default:
         return 'bg-blue-50 text-blue-700';
+    }
+  };
+
+  const getStatusBadge = (status?: string) => {
+    if (!status) return null;
+    
+    switch (status) {
+      case 'new':
+        return <span className="px-2 py-1 text-xs font-medium rounded bg-blue-50 text-blue-700">New</span>;
+      case 'read':
+        return <span className="px-2 py-1 text-xs font-medium rounded bg-gray-50 text-gray-700">Read</span>;
+      case 'in_review':
+        return <span className="px-2 py-1 text-xs font-medium rounded bg-yellow-50 text-yellow-700">In Review</span>;
+      case 'planned':
+        return <span className="px-2 py-1 text-xs font-medium rounded bg-green-50 text-green-700">Planned</span>;
+      default:
+        return null;
     }
   };
 
@@ -597,6 +635,7 @@ export default function WorkspaceDetail({ podId }: WorkspaceDetailProps) {
                           <span className="text-sm text-gray-500">
                             {new Date(insight.created_at).toLocaleDateString()}
                           </span>
+                          {getStatusBadge(insight.insights?.status)}
                         </div>
                         
                         <p className="text-gray-900 font-medium mb-3">

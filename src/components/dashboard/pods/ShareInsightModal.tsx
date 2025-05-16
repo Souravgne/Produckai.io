@@ -27,6 +27,7 @@ interface Insight {
   content: string;
   source: string;
   sentiment: string;
+  status: string;
 }
 
 export default function ShareInsightModal({ 
@@ -114,7 +115,7 @@ export default function ShareInsightModal({
     try {
       const { data, error } = await supabase
         .from('insights')
-        .select('id, content, source, sentiment')
+        .select('id, content, source, sentiment, status')
         .order('created_at', { ascending: false })
         .limit(50);
 
@@ -130,7 +131,7 @@ export default function ShareInsightModal({
       setLoadingInsight(true);
       const { data, error } = await supabase
         .from('insights')
-        .select('content, source, sentiment')
+        .select('content, source, sentiment, status')
         .eq('id', id)
         .single();
 
@@ -221,6 +222,12 @@ export default function ShareInsightModal({
       // Extract tag values for storage
       const tagValues = selectedTags.map(tag => tag.value);
 
+      // Update insight status to 'in_review'
+      await supabase
+        .from('insights')
+        .update({ status: 'in_review' })
+        .eq('id', selectedInsightId);
+
       // Share the insight to the selected pod
       const { error } = await supabase
         .from('pod_insights')
@@ -254,7 +261,7 @@ export default function ShareInsightModal({
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col">
         <div className="p-6 border-b border-gray-200 flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-gray-900">Share Insight to Workspace</h2>
+          <h2 className="text-xl font-semibold text-gray-900">Add Insight to Workspace</h2>
           <button
             onClick={onClose}
             className="p-2 text-gray-500 hover:text-gray-700 rounded-lg hover:bg-gray-100"
@@ -415,6 +422,17 @@ export default function ShareInsightModal({
                       <span className="text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">
                         {insight.source}
                       </span>
+                      {insight.status && (
+                        <span className={`px-2 py-0.5 text-xs rounded ${
+                          insight.status === 'new' ? 'bg-blue-50 text-blue-700' :
+                          insight.status === 'read' ? 'bg-gray-50 text-gray-700' :
+                          insight.status === 'in_review' ? 'bg-yellow-50 text-yellow-700' :
+                          'bg-green-50 text-green-700'
+                        }`}>
+                          {insight.status === 'in_review' ? 'In Review' : 
+                           insight.status.charAt(0).toUpperCase() + insight.status.slice(1)}
+                        </span>
+                      )}
                     </div>
                     <p className="text-sm text-gray-900 line-clamp-2">{insight.content}</p>
                   </div>
@@ -514,12 +532,12 @@ export default function ShareInsightModal({
               {loading ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  Sharing...
+                  Adding...
                 </>
               ) : (
                 <>
                   <Share2 className="w-5 h-5" />
-                  Share to Workspace
+                  Add to Workspace
                 </>
               )}
             </button>
