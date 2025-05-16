@@ -174,18 +174,7 @@ export default function InsightCard({
             className="px-3 py-1.5 bg-blue-50 text-blue-700 rounded hover:bg-blue-100 transition-colors flex items-center gap-1.5 text-sm"
           >
             <Share2 className="w-4 h-4" />
-            Share
-          </button>
-
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onAddToBacklog?.();
-            }}
-            className="px-3 py-1.5 bg-purple-50 text-purple-700 rounded hover:bg-purple-100 transition-colors flex items-center gap-1.5 text-sm"
-          >
-            <ListPlus className="w-4 h-4" />
-            Backlog
+            Add to Workspace
           </button>
         </div>
 
