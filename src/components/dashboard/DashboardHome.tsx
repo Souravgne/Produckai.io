@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
+import EmptyDashboard from './EmptyDashboard';
 
 interface StatCardProps {
   title: string;
@@ -182,6 +183,7 @@ export default function DashboardHome() {
   const [importantInsights, setImportantInsights] = useState<ImportantInsight[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [hasData, setHasData] = useState(false);
 
   useEffect(() => {
     loadDashboardMetrics();
@@ -196,6 +198,15 @@ export default function DashboardHome() {
         .select('id, created_at, status');
 
       if (insightsError) throw insightsError;
+
+      // Check if there's any data
+      if (!insights || insights.length === 0) {
+        setHasData(false);
+        setLoading(false);
+        return;
+      }
+
+      setHasData(true);
 
       // Get new insights this week
       const oneWeekAgo = new Date();
@@ -326,6 +337,18 @@ export default function DashboardHome() {
     if (total === 0) return 0;
     return Math.round((count / total) * 100);
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+      </div>
+    );
+  }
+
+  if (!hasData) {
+    return <EmptyDashboard />;
+  }
 
   return (
     <div className="max-w-7xl mx-auto">
