@@ -1,5 +1,8 @@
 import React from "react";
 import { supabase } from "../../../lib/supabase";
+import { useDataContext } from "../../../contexts/DataContext";
+
+const baseUrl = import.meta.env.BASE_URL;
 
 interface User {
   id: string;
@@ -11,9 +14,12 @@ const InviteModal: React.FC<{
   users?: User[];
   onInvite: (userId: string) => void;
   onClose: () => void;
-}> = ({ users = [], onInvite, onClose }) => {
+}> = ({ onClose }) => {
   const [fetchedUsers, setFetchedUsers] = React.useState<User[] | null>(null);
+  const [invitedUsers, setInvitedUsers] = React.useState<string[]>([]);
+  const { profile } = useDataContext();
 
+  console.log(profile?.email);
   React.useEffect(() => {
     const fetchAllUsers = async () => {
       const { data, error } = await supabase
@@ -26,13 +32,16 @@ const InviteModal: React.FC<{
         return;
       }
 
-      if (data) {
-        setFetchedUsers(data);
+      if (data && profile?.email) {
+        const filteredUsers = data.filter((user: User) => {
+          return true;
+        });
+        setFetchedUsers(filteredUsers);
       }
     };
 
     fetchAllUsers();
-  }, []);
+  }, [profile?.email]);
 
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -42,6 +51,110 @@ const InviteModal: React.FC<{
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [onClose]);
+  // const SECRET_KEY = "your-very-secret-key"; // Keep it safe, e.g. in env
+
+  // const createInviteToken = (userId: string, company: string) => {
+  //   const payload = {
+  //     userId,
+  //     company,
+  //     issuedAt: Date.now(),
+  //   };
+  //   return jwt.sign(payload, SECRET_KEY, { expiresIn: "7d" }); // Valid for 7 days
+  // };
+  // const token = createInviteToken(profile?.id, "hello") || "hello";
+  const token = "hello sourav";
+  const inviteLink = `${baseUrl}/accept-invite?token=${token}`;
+
+  const handleInvite = async (user: User) => {
+    const company = "Your Company";
+    const currentYear = new Date().getFullYear();
+    const userName = profile?.full_name || "there";
+
+    const htmlTemplate = `
+      <!DOCTYPE html>
+      <html lang="en">
+        <head>
+          <meta charset="UTF-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+          <title>You're Invited!</title>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              background-color: #f9fafb;
+              padding: 20px;
+              color: #333;
+            }
+            .container {
+              max-width: 600px;
+              margin: 0 auto;
+              background-color: #ffffff;
+              padding: 30px;
+              border-radius: 10px;
+              box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            }
+            .btn {
+              display: inline-block;
+              margin-top: 20px;
+              padding: 12px 24px;
+              background-color: #2563eb;
+              color: white;
+              text-decoration: none;
+              border-radius: 6px;
+              font-weight: bold;
+            }
+            .footer {
+              margin-top: 40px;
+              font-size: 12px;
+              color: #888;
+              text-align: center;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <h1>You're Invited 🎉</h1>
+            <p>Hi <strong>${userName}</strong>,</p>
+            <p>
+              You've been invited to join <strong>${company}</strong> on our
+              platform. Click the button below to accept the invitation and get
+              started.
+            </p>
+            <a class="btn" href="${inviteLink}" target="_blank">Accept Invitation</a>
+            <p>If you have any questions, feel free to reply to this email.</p>
+            <div class="footer">
+              &copy; ${currentYear} ${company}. All rights reserved.
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    try {
+      const response = await fetch(
+        "https://smtp-nrw5.vercel.app/api/send-email",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            to: user.email,
+            subject: "You're Invited to Join!",
+            htmlContent: htmlTemplate,
+          }),
+        }
+      );
+
+      if (response.ok) {
+        setInvitedUsers((prev) => [...prev, user.id]);
+        console.log("email sent successfully", response);
+      } else {
+        console.error("Failed to send invite email");
+      }
+    } catch (error) {
+      console.error("Error sending invite email:", error);
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4">
@@ -93,10 +206,15 @@ const InviteModal: React.FC<{
                     <p className="text-sm text-gray-500">{user.email}</p>
                   </div>
                   <button
-                    onClick={() => onInvite(user.id)}
-                    className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium"
+                    onClick={() => handleInvite(user)}
+                    className={`px-4 py-2 text-sm rounded-lg transition font-medium ${
+                      invitedUsers.includes(user.id)
+                        ? "bg-green-600 text-white cursor-default"
+                        : "bg-blue-600 text-white hover:bg-blue-700"
+                    }`}
+                    disabled={invitedUsers.includes(user.id)}
                   >
-                    Invite
+                    {invitedUsers.includes(user.id) ? "Invited" : "Invite"}
                   </button>
                 </li>
               ))}

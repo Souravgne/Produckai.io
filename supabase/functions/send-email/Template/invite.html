@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>You're Invited!</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f9fafb;
+        padding: 20px;
+        color: #333;
+      }
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+        background-color: #ffffff;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+      }
+      .btn {
+        display: inline-block;
+        margin-top: 20px;
+        padding: 12px 24px;
+        background-color: #2563eb;
+        color: white;
+        text-decoration: none;
+        border-radius: 6px;
+        font-weight: bold;
+      }
+      .footer {
+        margin-top: 40px;
+        font-size: 12px;
+        color: #888;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>You're Invited 🎉</h1>
+      <p>Hi <strong>{{name}}</strong>,</p>
+      <p>
+        You've been invited to join <strong>{{company}}</strong> on our
+        platform. Click the button below to accept the invitation and get
+        started.
+      </p>
+      <a class="btn" href="{{invite_link}}" target="_blank"
+        >Accept Invitation</a
+      >
+
+      <p>If you have any questions, feel free to reply to this email.</p>
+
+      <div class="footer">
+        &copy; {{year}} {{company}}. All rights reserved.
+      </div>
+    </div>
+  </body>
+</html>
