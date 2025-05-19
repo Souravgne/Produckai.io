@@ -31,10 +31,15 @@ const InviteModal: React.FC<{
         setFetchedUsers([]);
         return;
       }
-
+      console.log("first", data);
       if (data && profile?.email) {
+        console.log("two", data);
+        const loggedInUserDomain = profile.email.split("@")[1];
         const filteredUsers = data.filter((user: User) => {
-          return true;
+          const userDomain = user.email?.split("@")[1];
+          return (
+            userDomain === loggedInUserDomain && user.email != profile.email
+          );
         });
         setFetchedUsers(filteredUsers);
       }
