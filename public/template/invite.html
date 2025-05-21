@@ -1,0 +1,61 @@
+const htmlTemplate = `
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>You're Invited to Join ${company}</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f9fafb;
+        padding: 20px;
+        color: #333;
+      }
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+        background-color: #ffffff;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+      }
+      .btn {
+        display: inline-block;
+        margin-top: 20px;
+        padding: 12px 24px;
+        background-color: #2563eb;
+        color: white;
+        text-decoration: none;
+        border-radius: 6px;
+        font-weight: bold;
+      }
+      .footer {
+        margin-top: 40px;
+        font-size: 12px;
+        color: #888;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Welcome to ${company} 🎉</h1>
+      <p>Hi <strong>${userName}</strong>,</p>
+      <p>
+        You've been invited to join <strong>ProductAi</strong> on our platform.
+        To get started, please set your password by clicking the button below.
+      </p>
+      <a class="btn" href="${resetLink}" target="_blank">Set Your Password</a>
+      <p>
+        Once you've set your password, you can log in and start using the
+        platform. If you weren’t expecting this invitation, you can ignore this
+        email.
+      </p>
+      <div class="footer">
+        &copy; ${currentYear} Productai. All rights reserved.
+      </div>
+    </div>
+  </body>
+</html>
+`;
