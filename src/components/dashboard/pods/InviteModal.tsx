@@ -68,7 +68,6 @@ const InviteModal: React.FC<{
         .replace(/\${company}/g, company)
         .replace(/\${resetLink}/g, inviteLink)
         .replace(/\${currentYear}/g, new Date().getFullYear().toString());
-      console.log(formattedHtml);
       const { data: fnData, error: fnError } = await supabase.functions.invoke(
         "send-mail",
         {
