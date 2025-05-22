@@ -4,7 +4,7 @@ import { useSearchParams } from "react-router-dom";
 import { supabase } from "../lib/supabase"; // your initialized client
 import Logo from "../components/Logo"; // Assuming Logo is a component in your project
 
-const SECRET_KEY = "sourav";
+const SECRET_KEY = "product-ai-secret";
 
 function decryptEmail(token: string): string {
   try {

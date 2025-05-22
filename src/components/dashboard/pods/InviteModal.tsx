@@ -52,7 +52,7 @@ const InviteModal: React.FC<{
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [onClose]);
 
-  const SECRET_KEY = "sourav";
+  const SECRET_KEY = "product-ai-secret";
   function encryptEmail(email: string): string {
     try {
       const ciphertext = CryptoJS.AES.encrypt(email, SECRET_KEY).toString();
