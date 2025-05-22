@@ -1,8 +1,7 @@
 import React from "react";
 import { supabase } from "../../../lib/supabase";
 import { useDataContext } from "../../../contexts/DataContext";
-
-const baseUrl = import.meta.env.BASE_URL;
+import CryptoJS from "crypto-js";
 
 interface User {
   id: string;
@@ -19,31 +18,28 @@ const InviteModal: React.FC<{
   const [invitedUsers, setInvitedUsers] = React.useState<string[]>([]);
   const { profile } = useDataContext();
 
-  //fetch all users and filter based on domain
+  //fetch users with matching email domain
   React.useEffect(() => {
-    const fetchAllUsers = async () => {
-      const { data, error } = await supabase
-        .from("user_profiles_view")
-        .select("*");
-      if (error) {
-        console.error("Error fetching users:", error);
-        setFetchedUsers([]);
-        return;
-      }
-
-      if (data && profile?.email) {
+    const fetchUsersByDomain = async () => {
+      if (profile?.email) {
         const loggedInUserDomain = profile.email.split("@")[1];
-        const filteredUsers = data.filter((user: User) => {
-          const userDomain = user.email?.split("@")[1];
-          return (
-            userDomain === loggedInUserDomain && user.email != profile.email
-          );
-        });
+        const { data, error } = await supabase
+          .from("user_profiles_view")
+          .select("*")
+          .ilike("email", `%@${loggedInUserDomain}`);
+        if (error) {
+          console.error("Error fetching users:", error);
+          setFetchedUsers([]);
+          return;
+        }
+
+        const filteredUsers = data.filter(
+          (user: User) => user.email !== profile.email
+        );
         setFetchedUsers(filteredUsers);
       }
     };
-
-    fetchAllUsers();
+    fetchUsersByDomain();
   }, [profile?.email]);
 
   // escape button to close modal
@@ -56,10 +52,25 @@ const InviteModal: React.FC<{
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [onClose]);
 
+  const SECRET_KEY = "sourav";
+  function encryptEmail(email: string): string {
+    try {
+      const ciphertext = CryptoJS.AES.encrypt(email, SECRET_KEY).toString();
+      return encodeURIComponent(ciphertext); // To make it URL-safe
+    } catch (error) {
+      console.error("Error encrypting email:", error);
+      return "";
+    }
+  }
+
+  // Use Supabase or your email provider to send this link
+
   const handleInvite = async (user: User) => {
     const userName = user?.full_name || "there";
     const company = user.email.split("@")[1].split(".")[0];
-    const inviteLink = ""; // Replace with the actual invite link
+    const encryptedEmail = encryptEmail(user.email);
+    const inviteLink = `https://produckai.io/change-password?token=${encryptedEmail}`;
+
     try {
       const res = await fetch("/template/invite.html");
       const htmlTemplate = await res.text();
@@ -68,6 +79,7 @@ const InviteModal: React.FC<{
         .replace(/\${company}/g, company)
         .replace(/\${resetLink}/g, inviteLink)
         .replace(/\${currentYear}/g, new Date().getFullYear().toString());
+      console.log(formattedHtml);
       const { data: fnData, error: fnError } = await supabase.functions.invoke(
         "send-mail",
         {
