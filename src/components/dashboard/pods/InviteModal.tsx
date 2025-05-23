@@ -7,6 +7,7 @@ const InviteModal: React.FC<{
 }> = ({ onClose }) => {
   const [email, setEmail] = React.useState<string>("");
   const [isInvited, setIsInvited] = React.useState<boolean>(false);
+  const [isLoading, setIsLoading] = React.useState<boolean>(false);
 
   // escape button to close modal
   React.useEffect(() => {
@@ -35,9 +36,13 @@ const InviteModal: React.FC<{
       return;
     }
 
+    setIsLoading(true);
+
     const encryptedEmail = encryptEmail(email);
-    const inviteLink = `https://produckai.io/change-password?token=${encryptedEmail}`;
-    console.log(inviteLink);
+    const domain = window.location.hostname;
+    console.log(domain);
+    const inviteLink = `https://${domain}/change-password?token=${encryptedEmail}`;
+
     try {
       const res = await fetch("/template/invite.html");
       const htmlTemplate = await res.text();
@@ -46,7 +51,7 @@ const InviteModal: React.FC<{
         .replace(/\${company}/g, email.split("@")[1].split(".")[0])
         .replace(/\${resetLink}/g, inviteLink)
         .replace(/\${currentYear}/g, new Date().getFullYear().toString());
-      console.log(formattedHtml);
+
       const { data: fnData, error: fnError } = await supabase.functions.invoke(
         "send-mail",
         {
@@ -65,13 +70,14 @@ const InviteModal: React.FC<{
         );
       } else {
         setIsInvited(true);
-        console.log("Email sent successfully:", fnData);
       }
     } catch (error) {
       console.error(
         "Unexpected error during email function call:",
         (error as Error).message || error
       );
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -118,9 +124,9 @@ const InviteModal: React.FC<{
                   ? "bg-green-600 text-white cursor-default"
                   : "bg-blue-600 text-white hover:bg-blue-700"
               }`}
-              disabled={isInvited}
+              disabled={isInvited || isLoading}
             >
-              {isInvited ? "Invited" : "Send Invite"}
+              {isLoading ? "Sending..." : isInvited ? "Invited" : "Send Invite"}
             </button>
           </div>
         </div>
