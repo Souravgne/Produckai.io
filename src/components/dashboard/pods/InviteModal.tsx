@@ -1,46 +1,12 @@
 import React from "react";
 import { supabase } from "../../../lib/supabase";
-import { useDataContext } from "../../../contexts/DataContext";
 import CryptoJS from "crypto-js";
 
-interface User {
-  id: string;
-  full_name: string | null;
-  email: string;
-}
-
 const InviteModal: React.FC<{
-  users?: User[];
-  onInvite: (userId: string) => void;
   onClose: () => void;
 }> = ({ onClose }) => {
-  const [fetchedUsers, setFetchedUsers] = React.useState<User[] | null>(null);
-  const [invitedUsers, setInvitedUsers] = React.useState<string[]>([]);
-  const { profile } = useDataContext();
-
-  //fetch users with matching email domain
-  React.useEffect(() => {
-    const fetchUsersByDomain = async () => {
-      if (profile?.email) {
-        const loggedInUserDomain = profile.email.split("@")[1];
-        const { data, error } = await supabase
-          .from("user_profiles_view")
-          .select("*")
-          .ilike("email", `%@${loggedInUserDomain}`);
-        if (error) {
-          console.error("Error fetching users:", error);
-          setFetchedUsers([]);
-          return;
-        }
-
-        const filteredUsers = data.filter(
-          (user: User) => user.email !== profile.email
-        );
-        setFetchedUsers(filteredUsers);
-      }
-    };
-    fetchUsersByDomain();
-  }, [profile?.email]);
+  const [email, setEmail] = React.useState<string>("");
+  const [isInvited, setIsInvited] = React.useState<boolean>(false);
 
   // escape button to close modal
   React.useEffect(() => {
@@ -63,20 +29,21 @@ const InviteModal: React.FC<{
     }
   }
 
-  // Use Supabase or your email provider to send this link
+  const handleInvite = async () => {
+    if (!email) {
+      alert("Please enter a valid email address.");
+      return;
+    }
 
-  const handleInvite = async (user: User) => {
-    const userName = user?.full_name || "there";
-    const company = user.email.split("@")[1].split(".")[0];
-    const encryptedEmail = encryptEmail(user.email);
+    const encryptedEmail = encryptEmail(email);
     const inviteLink = `https://produckai.io/change-password?token=${encryptedEmail}`;
-
+    console.log(inviteLink);
     try {
       const res = await fetch("/template/invite.html");
       const htmlTemplate = await res.text();
       const formattedHtml = htmlTemplate
-        .replace(/\${userName}/g, userName)
-        .replace(/\${company}/g, company)
+        .replace(/\${userName}/g, "there")
+        .replace(/\${company}/g, email.split("@")[1].split(".")[0])
         .replace(/\${resetLink}/g, inviteLink)
         .replace(/\${currentYear}/g, new Date().getFullYear().toString());
       console.log(formattedHtml);
@@ -84,7 +51,7 @@ const InviteModal: React.FC<{
         "send-mail",
         {
           body: {
-            to: user.email,
+            to: email,
             subject: "You're Invited to Join!",
             html: formattedHtml,
           },
@@ -97,7 +64,7 @@ const InviteModal: React.FC<{
           fnError.message || fnError
         );
       } else {
-        setInvitedUsers((prev) => [...prev, user.id]);
+        setIsInvited(true);
         console.log("Email sent successfully:", fnData);
       }
     } catch (error) {
@@ -136,46 +103,26 @@ const InviteModal: React.FC<{
         </div>
 
         <div className="p-5">
-          {fetchedUsers === null ? (
-            <p className="text-center text-sm text-gray-500">
-              Loading users...
-            </p>
-          ) : fetchedUsers.length > 0 ? (
-            <ul
-              className={`space-y-4 ${
-                fetchedUsers.length > 5 ? "max-h-72 overflow-y-auto pr-2" : ""
+          <div className="space-y-4">
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Enter email address"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <button
+              onClick={handleInvite}
+              className={`w-full px-4 py-2 text-sm rounded-lg transition font-medium ${
+                isInvited
+                  ? "bg-green-600 text-white cursor-default"
+                  : "bg-blue-600 text-white hover:bg-blue-700"
               }`}
+              disabled={isInvited}
             >
-              {fetchedUsers.map((user) => (
-                <li
-                  key={user.id}
-                  className="flex items-center justify-between bg-gray-50 p-4 rounded-xl shadow-sm hover:bg-gray-100 transition"
-                >
-                  <div>
-                    <p className="text-base font-medium text-gray-900">
-                      {user.full_name || "No Name"}
-                    </p>
-                    <p className="text-sm text-gray-500">{user.email}</p>
-                  </div>
-                  <button
-                    onClick={() => handleInvite(user)}
-                    className={`px-4 py-2 text-sm rounded-lg transition font-medium ${
-                      invitedUsers.includes(user.id)
-                        ? "bg-green-600 text-white cursor-default"
-                        : "bg-blue-600 text-white hover:bg-blue-700"
-                    }`}
-                    disabled={invitedUsers.includes(user.id)}
-                  >
-                    {invitedUsers.includes(user.id) ? "Invited" : "Invite"}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-center text-sm text-gray-500">
-              No users available to invite.
-            </p>
-          )}
+              {isInvited ? "Invited" : "Send Invite"}
+            </button>
+          </div>
         </div>
       </div>
     </div>
